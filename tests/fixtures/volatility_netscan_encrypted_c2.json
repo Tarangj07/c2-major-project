@@ -1,0 +1,21 @@
+{
+  "_doc": "Synthetic Volatility 3 windows.netscan.NetScan JSON output for an encrypted C2 baseline. Mirrors the real Volatility 3 schema (PID/Owner/Protocol/LocalAddress/LocalPort/RemoteAddress/RemotePort/State/Created). The first row is the test client (PID 4580) talking to the C2 server (192.168.56.20:8443) — the same flow the PCAP fixture captures. Used by tests/unit/test_memory_parser.py.",
+  "rows": [
+    {"PID": 4580, "Owner": "test-client.exe", "Protocol": "TCPv4",
+     "LocalAddress": "192.168.56.108", "LocalPort": 51000,
+     "RemoteAddress": "192.168.56.20", "RemotePort": 8443,
+     "State": "ESTABLISHED", "Created": "2023-11-14 22:13:25.500000"},
+    {"PID": 4, "Owner": "System", "Protocol": "TCPv4",
+     "LocalAddress": "0.0.0.0", "LocalPort": 445,
+     "RemoteAddress": "0.0.0.0", "RemotePort": 0,
+     "State": "LISTENING", "Created": "2023-11-14 22:13:20.000000"},
+    {"PID": 880, "Owner": "services.exe", "Protocol": "UDPv4",
+     "LocalAddress": "192.168.56.108", "LocalPort": 5353,
+     "RemoteAddress": "*", "RemotePort": 0,
+     "State": "", "Created": "2023-11-14 22:13:21.000000"},
+    {"PID": 4580, "Owner": "test-client.exe", "Protocol": "TCPv6",
+     "LocalAddress": "fe80::1234", "LocalPort": 51001,
+     "RemoteAddress": "fe80::5678", "RemotePort": 8443,
+     "State": "ESTABLISHED", "Created": "2023-11-14 22:13:26.000000"}
+  ]
+}

@@ -1,0 +1,72 @@
+# Lab configuration for the Encrypted C2 Forensic Reconstruction Framework.
+#
+# This file is the single source of truth for non-evidence, non-experiment
+# runtime parameters. Experiment-specific data lives under
+# experiments/<EXPERIMENT_ID>/metadata.json.
+#
+# Paths may be absolute or relative to the repository root.
+
+# -----------------------------------------------------------------------------
+# Laboratory environment
+# -----------------------------------------------------------------------------
+lab:
+  # The lab network used for the controlled C2 experiments.
+  network_cidr: "192.168.56.0/24"
+  # The forensic target (benign test client).
+  target_host: "192.168.56.108"
+  # The controlled TLS C2 server.
+  c2_server_host: "192.168.56.20"
+  c2_server_port: 8443
+
+# -----------------------------------------------------------------------------
+# External tool locations
+# -----------------------------------------------------------------------------
+tools:
+  # tshark is invoked as a subprocess; it is not bundled.
+  tshark:
+    binary: "tshark"
+    # A hard timeout per tshark invocation prevents hangs on malformed PCAPs.
+    timeout_seconds: 300
+  # Volatility 3 is invoked as a subprocess in Phase 3; the framework never
+  # imports it as a Python library at this stage to keep dependency surface
+  # minimal and to avoid hard-coupling to a specific version.
+  volatility3:
+    binary: "vol"
+    timeout_seconds: 1800
+
+# -----------------------------------------------------------------------------
+# Evidence handling
+# -----------------------------------------------------------------------------
+evidence:
+  # Hash algorithm used to fingerprint immutable raw artefacts.
+  hash_algorithm: "sha256"
+  # Subdirectory names under each experiment directory.
+  layout:
+    raw: "raw"
+    extracted: "extracted"
+    normalized: "normalized"
+    correlation: "correlation"
+    reconstruction: "reconstruction"
+    timeline: "timeline"
+    evaluation: "evaluation"
+
+# -----------------------------------------------------------------------------
+# Correlation engine (Phase 4 will consume this; declared now so configuration
+# is testable in isolation).
+# -----------------------------------------------------------------------------
+correlation:
+  weights:
+    ip_match: 0.25
+    port_match: 0.25
+    protocol_match: 0.10
+    timestamp_proximity: 0.15
+    socket_match: 0.20
+    process_association: 0.05
+  # Tolerance in seconds for the timestamp-proximity factor. Two events are
+  # considered "temporally aligned" if their absolute time difference is below
+  # this threshold.
+  timestamp_tolerance_seconds: 5
+  thresholds:
+    strong: 0.80
+    medium: 0.50
+    weak: 0.20

@@ -1,0 +1,17 @@
+{
+  "c2_server_host": null,
+  "c2_server_port": null,
+  "config_snapshot": {},
+  "created_at": "2026-09-03T20:36:25.355172Z",
+  "description": "",
+  "experiment_id": "REAL_VAL",
+  "protocol": "tls",
+  "raw_hashes": {
+    "raw/capture.pcap": "c1da123575bc19ba3de7c36ee88a77caa1dc454c1b018dee015c1ec6e4e438fe"
+  },
+  "status": "initialized",
+  "tags": [],
+  "target_host": null,
+  "tool_versions": null,
+  "updated_at": "2026-09-03T20:36:25.356229+00:00"
+}

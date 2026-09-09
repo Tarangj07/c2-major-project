@@ -1,0 +1,10 @@
+{
+  "_doc": "pslist rows with various malformed fields to test the parser's defensive code paths.",
+  "rows": [
+    {"PID": 4, "PPID": 0, "ImageFileName": "System", "CreateTime": "garbage-timestamp", "ExitTime": null},
+    {"PID": 0, "PPID": 0, "ImageFileName": "KThread", "CreateTime": "2023-11-14 22:13:20.000000", "ExitTime": "also-garbage"},
+    {"ImageFileName": "no-pid-row", "CreateTime": "2023-11-14 22:13:20.000000"},
+    {"PID": 99, "PPID": 1, "ImageFileName": "", "CreateTime": "2023-11-14 22:13:20.000000"},
+    {"PID": 100, "PPID": "not-an-int", "ImageFileName": "bad-ppid.exe", "CreateTime": "2023-11-14 22:13:20.000000"}
+  ]
+}

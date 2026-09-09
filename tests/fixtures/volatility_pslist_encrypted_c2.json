@@ -1,0 +1,12 @@
+{
+  "_doc": "Synthetic Volatility 3 windows.pslist.PsList JSON output for an encrypted C2 baseline. Mirrors the real Volatility 3 schema (PID/PPID/ImageFileName/CreateTime/ExitTime). One process is the test client (PID 4580, name 'test-client.exe') with the matching TCP socket from the netscan fixture. Used by tests/unit/test_memory_parser.py. The fixture is committed so the parser tests do not require a real Volatility 3 binary or a real memory image.",
+  "rows": [
+    {"PID": 4, "PPID": 0, "ImageFileName": "System", "CreateTime": "2023-11-14 22:13:20.000000", "ExitTime": null},
+    {"PID": 388, "PPID": 4, "ImageFileName": "smss.exe", "CreateTime": "2023-11-14 22:13:20.000000", "ExitTime": null},
+    {"PID": 504, "PPID": 388, "ImageFileName": "csrss.exe", "CreateTime": "2023-11-14 22:13:20.050000", "ExitTime": null},
+    {"PID": 580, "PPID": 388, "ImageFileName": "wininit.exe", "CreateTime": "2023-11-14 22:13:20.100000", "ExitTime": null},
+    {"PID": 880, "PPID": 580, "ImageFileName": "services.exe", "CreateTime": "2023-11-14 22:13:20.150000", "ExitTime": null},
+    {"PID": 4580, "PPID": 880, "ImageFileName": "test-client.exe", "CreateTime": "2023-11-14 22:13:25.000000", "ExitTime": null},
+    {"PID": 1234, "PPID": 4580, "ImageFileName": "test-client-helper.exe", "CreateTime": "2023-11-14 22:13:26.000000", "ExitTime": null}
+  ]
+}

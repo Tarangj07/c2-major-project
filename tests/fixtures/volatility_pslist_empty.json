@@ -1,0 +1,4 @@
+{
+  "_doc": "Empty pslist capture: zero rows. Used to test the not_found path without requiring a real memory image.",
+  "rows": []
+}

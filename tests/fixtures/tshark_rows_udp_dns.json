@@ -1,0 +1,27 @@
+{
+  "_doc": "Single UDP DNS query fixture. Used to confirm the parser handles UDP transports and that the SYN/ACK parser does not emit spurious TCP events for them.",
+  "field_order": [
+    "frame.number",
+    "frame.time_epoch",
+    "frame.len",
+    "ip.src",
+    "ip.dst",
+    "tcp.srcport",
+    "tcp.dstport",
+    "udp.srcport",
+    "udp.dstport",
+    "tcp.stream",
+    "tcp.flags",
+    "tls.handshake.type",
+    "tls.handshake.version",
+    "tls.handshake.ciphersuite",
+    "tls.handshake.extensions_server_name",
+    "x509sat.uTF8String",
+    "x509ce.dNSName",
+    "x509af.issuer"
+  ],
+  "rows": [
+    ["100", "1700000001.000000", "71",  "192.168.56.108", "192.168.56.20",  "",      "",      "55000", "53",   "", "", "", "", "", "", "", "", ""],
+    ["101", "1700000001.000120", "87",  "192.168.56.20",  "192.168.56.108", "",      "",      "53",    "55000","", "", "", "", "", "", "", "", ""]
+  ]
+}

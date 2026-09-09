@@ -1,0 +1,5 @@
+{
+  "_doc": "Empty capture: tshark returns no rows. Used to test the empty-PCAP path without requiring tshark on PATH.",
+  "field_order": [],
+  "rows": []
+}

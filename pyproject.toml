@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "c2forensics"
+version = "0.1.0"
+description = "Encrypted C2 Forensic Reconstruction Framework - research-grade modular pipeline for attributing encrypted C2 traffic to processes via volatile-memory and network correlation."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Encrypted C2 Forensic Reconstruction Framework contributors" },
+]
+keywords = ["forensics", "c2", "tls", "memory-analysis", "volatility", "tshark", "research"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: System :: Networking :: Monitoring",
+]
+dependencies = [
+    "pydantic>=2.6,<3.0",
+    "PyYAML>=6.0,<7.0",
+    "pandas>=2.1,<3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+]
+
+[project.scripts]
+c2forensics = "c2forensics.cli.main:main"
+
+[project.urls]
+"Homepage" = "https://example.invalid/c2forensics"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+addopts = "-ra -q --strict-markers"
+pythonpath = ["src"]
+filterwarnings = [
+    "error",
+    # Pydantic v2 may emit a deprecation warning on some stdlib hooks during
+    # transitional versions; downgrade rather than fail tests.
+    "ignore::DeprecationWarning:pydantic.*",
+]
