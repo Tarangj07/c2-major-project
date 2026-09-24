@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class LabSection(BaseModel):
@@ -66,7 +66,7 @@ class CorrelationWeights(BaseModel):
     tls_metadata_match: float = Field(default=0.0, ge=0.0, le=1.0)
 
     def total(self) -> float:
-        """Return the sum of all weights, used to normalise the score."""
+        """Return the sum of all weights, including reserved factors."""
         return float(
             self.ip_match
             + self.port_match
@@ -75,6 +75,15 @@ class CorrelationWeights(BaseModel):
             + self.socket_match
             + self.process_association
             + self.tls_metadata_match
+        )
+
+    def active_total(self) -> float:
+        """Return the sum of weights eligible for Phase 4 scoring."""
+        return float(
+            self.port_match
+            + self.protocol_match
+            + self.timestamp_proximity
+            + self.process_association
         )
 
 
@@ -111,7 +120,17 @@ class CorrelationSection(BaseModel):
 
     weights: CorrelationWeights
     timestamp_tolerance_seconds: float = Field(default=5.0, gt=0.0)
+    ambiguity_margin: float = Field(default=0.05, ge=0.0, le=1.0)
     thresholds: CorrelationThresholds
+
+    @model_validator(mode="after")
+    def _require_active_weights(self) -> "CorrelationSection":
+        if self.weights.active_total() <= 0.0:
+            raise ValueError(
+                "at least one Phase 4 active weight (port_match, protocol_match, "
+                "timestamp_proximity, process_association) must be > 0"
+            )
+        return self
 
 
 @dataclass(frozen=True)

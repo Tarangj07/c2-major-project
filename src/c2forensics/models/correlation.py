@@ -8,7 +8,7 @@ Weights are configurable and never hard-coded as scientifically validated.
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import Field
 
@@ -34,12 +34,12 @@ class CorrelationFactor(FrozenModel):
     weight: float = Field(
         ge=0.0,
         le=1.0,
-        description="Weight assigned to this factor in the configuration.",
+        description="Configured weight assigned to this factor.",
     )
     contribution: float = Field(
         ge=0.0,
         le=1.0,
-        description="Weight contributed to the overall score: weight if matched, else 0.",
+        description="Normalized weight contributed to the overall score.",
     )
     detail: str = Field(
         default="",
@@ -93,4 +93,33 @@ class CorrelationResult(FrozenModel):
     evidence: CorrelationEvidence = Field(
         default_factory=CorrelationEvidence,
         description="Coarse-grained public evidence flags.",
+    )
+
+
+class FlowOutcome(FrozenModel):
+    """The persisted, explainable decision for one network flow."""
+
+    experiment_id: str = identifier_field("Identifier of the experiment.")
+    flow_id: str = identifier_field("Identifier of the FlowObservation being decided.")
+    outcome: Literal[
+        "MATCHED",
+        "MULTIPLE_CANDIDATES",
+        "NO_MATCH",
+        "INSUFFICIENT_EVIDENCE",
+    ] = Field(description="Flow-level decision after evaluating all candidate sockets.")
+    candidates: list[CorrelationResult] = Field(
+        default_factory=list,
+        description="Deterministically ordered per-process correlation results.",
+    )
+    flow_provenance: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Lightweight snapshot of the FlowObservation fields used in the decision.",
+    )
+    socket_provenance: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Lightweight snapshots of IP-compatible SocketArtifact records.",
+    )
+    process_provenance: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Lightweight snapshots of ProcessArtifact records linked by candidate PID.",
     )

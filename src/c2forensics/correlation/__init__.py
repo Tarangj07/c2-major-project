@@ -1,0 +1,41 @@
+"""Phase 4 memory-network correlation public API."""
+
+from c2forensics.correlation.engine import (
+    CorrelationError,
+    correlate,
+    correlate_and_mark,
+    correlate_evidence,
+    correlate_flow,
+    endpoints_ip_compatible,
+    ip_compatible,
+    load_correlation_inputs,
+    load_flow_outcomes,
+    persist_flow_outcomes,
+    port_match,
+    protocol_match,
+    run_correlation,
+    save_flow_outcomes,
+    score_candidate,
+    socket_canonical_endpoint,
+    timestamp_proximity,
+)
+
+__all__ = [
+    "CorrelationError",
+    "correlate",
+    "correlate_and_mark",
+    "correlate_evidence",
+    "correlate_flow",
+    "endpoints_ip_compatible",
+    "ip_compatible",
+    "load_correlation_inputs",
+    "load_flow_outcomes",
+    "persist_flow_outcomes",
+    "port_match",
+    "protocol_match",
+    "run_correlation",
+    "save_flow_outcomes",
+    "score_candidate",
+    "socket_canonical_endpoint",
+    "timestamp_proximity",
+]

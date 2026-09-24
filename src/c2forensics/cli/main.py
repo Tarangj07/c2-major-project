@@ -202,10 +202,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_mem_status.add_argument("experiment_id")
     p_mem_status.set_defaults(func=_cmd_memory_status)
 
+    # --- correlate ----------------------------------------------------------
+    p_corr = sub.add_parser(
+        "correlate",
+        help="Correlate PCAP flows with memory sockets/processes (Phase 4).",
+    )
+    p_corr.add_argument("experiment_id")
+    p_corr.set_defaults(func=_cmd_correlate)
+
     # --- placeholders for later phases -------------------------------------
     for name, help_text in (
         ("normalize", "Evidence normalization (Phase 2/3)."),
-        ("correlate", "Correlation (Phase 4)."),
         ("reconstruct", "Reconstruction (Phase 5)."),
         ("timeline", "Timeline (Phase 6)."),
         ("evaluate", "Evaluation (Phase 7)."),
@@ -422,6 +429,33 @@ def _cmd_memory_status(args: argparse.Namespace) -> int:
         out["latest_extraction"] = None
         out["latest_extraction_error"] = str(exc)
     print(json.dumps(out, indent=2))
+    return 0
+
+
+def _cmd_correlate(args: argparse.Namespace) -> int:
+    from c2forensics.correlation import CorrelationError, correlate_and_mark
+    from c2forensics.errors import ExperimentNotFoundError
+
+    config = _load_config_or_die(args)
+    repo_root = _resolve_repo_root(args, config)
+    paths = ExperimentPaths.for_experiment(repo_root, args.experiment_id)
+    if not paths.metadata_file.is_file():
+        raise ExperimentNotFoundError(
+            f"experiment {args.experiment_id!r} is not initialised at {paths.root}"
+        )
+    try:
+        outcomes = correlate_and_mark(paths, config.correlation)
+    except CorrelationError as exc:
+        # Failed correlation must not advance the lifecycle status.
+        raise C2ForensicsError(str(exc)) from exc
+    summary = {
+        "experiment_id": args.experiment_id,
+        "flows": len(outcomes),
+        "outcomes": {outcome.flow_id: outcome.outcome for outcome in outcomes},
+        "output": str(paths.correlation / "flow-outcomes.json"),
+        "status": "correlated",
+    }
+    print(json.dumps(summary, indent=2, sort_keys=True))
     return 0
 
 

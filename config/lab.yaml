@@ -55,17 +55,27 @@ evidence:
 # is testable in isolation).
 # -----------------------------------------------------------------------------
 correlation:
+  # Phase 4: IP compatibility is the only candidate-generation gate and is
+  # never scored; socket_match and tls_metadata_match are reserved factors.
+  # Scoring is normalized over the *active* factors that are available for a
+  # given candidate (port_match, protocol_match, timestamp_proximity,
+  # process_association).
   weights:
-    ip_match: 0.25
-    port_match: 0.25
+    ip_match: 0.0        # gate only – contributes nothing to the score
+    port_match: 0.30
     protocol_match: 0.10
-    timestamp_proximity: 0.15
-    socket_match: 0.20
-    process_association: 0.05
-  # Tolerance in seconds for the timestamp-proximity factor. Two events are
-  # considered "temporally aligned" if their absolute time difference is below
-  # this threshold.
+    timestamp_proximity: 0.20
+    socket_match: 0.0    # reserved for future phases
+    process_association: 0.10
+    tls_metadata_match: 0.0  # reserved for future phases
+  # Tolerance in seconds for the timestamp-proximity factor. A flow's first
+  # observed SYN and the memory socket's Volatility "Created" time are
+  # considered temporally consistent when their absolute difference is within
+  # this window. Proximity only; it does not assert socket lifetime.
   timestamp_tolerance_seconds: 5
+  # Maximum confidence difference below which two sufficiently supported
+  # candidates are considered ambiguous (MULTIPLE_CANDIDATES).
+  ambiguity_margin: 0.05
   thresholds:
     strong: 0.80
     medium: 0.50

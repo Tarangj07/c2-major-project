@@ -163,10 +163,10 @@ class FlowObservation(FrozenModel):
 
     experiment_id: str = identifier_field("Identifier of the experiment.")
     flow_id: str = identifier_field("Identifier of this flow within the experiment.")
-    src_ip: str = identifier_field("Initiator source IP literal (observed in SYN).")
-    src_port: int = Field(ge=1, le=65535, description="Initiator source port (observed in SYN).")
-    dst_ip: str = identifier_field("Destination IP literal (observed in SYN).")
-    dst_port: int = Field(ge=1, le=65535, description="Destination port (observed in SYN).")
+    src_ip: str = identifier_field("TCP initiator source IP when a SYN is observed; otherwise the canonical source endpoint.")
+    src_port: int = Field(ge=1, le=65535, description="TCP initiator source port when a SYN is observed; otherwise the canonical source port.")
+    dst_ip: str = identifier_field("TCP responder IP when a SYN is observed; otherwise the canonical destination endpoint.")
+    dst_port: int = Field(ge=1, le=65535, description="TCP responder port when a SYN is observed; otherwise the canonical destination port.")
     protocol: str = Field(min_length=1, description="Transport protocol, 'tcp' or 'udp'.")
     tcp_stream: int | None = Field(
         default=None,

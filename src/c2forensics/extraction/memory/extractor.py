@@ -11,10 +11,12 @@ CLI ever invokes. It performs three steps in order:
    :func:`c2forensics.extraction.memory.parser.parse_plugin_rows`
    and persist the result.
 
-The extractor never modifies a memory image. The on-disk image
-file is hashed before any plugin runs and that hash is recorded
-on every emitted artefact so that a downstream stage can detect
-tampering.
+The extractor never modifies a memory image. The on-disk image file
+is hashed before any plugin runs and the digest is recorded in the
+bundle-level :class:`ImageRecord` provenance (per-artefact records do
+not carry the image hash themselves). Phase 4 correlation enforces a
+single-image bundle, so bundle-level image provenance is sufficient
+for a downstream stage to detect tampering.
 """
 
 from __future__ import annotations

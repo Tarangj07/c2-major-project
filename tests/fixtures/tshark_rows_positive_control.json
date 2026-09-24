@@ -1,0 +1,29 @@
+{
+ "_doc": "Minimal synthetic positive-control tshark rows for Phase 4 integration tests. A single TCP flow from 192.168.56.108:51000 to 192.168.56.20:8443 whose first SYN is at epoch 1700000005.5, i.e. exactly the Volatility 'Created' time of the matching netscan socket in volatility_netscan_encrypted_c2.json (22:13:25.5 UTC, epoch base 1700000000 = 22:13:20). This gives temporal delta 0 so the positive control is temporally consistent with the memory evidence. Constructed deterministically; not real packet data.",
+ "field_order": [
+  "frame.number",
+  "frame.time_epoch",
+  "frame.len",
+  "ip.src",
+  "ip.dst",
+  "tcp.srcport",
+  "tcp.dstport",
+  "udp.srcport",
+  "udp.dstport",
+  "tcp.stream",
+  "tcp.flags",
+  "tls.handshake.type",
+  "tls.handshake.version",
+  "tls.handshake.ciphersuite",
+  "tls.handshake.extensions_server_name",
+  "x509sat.uTF8String",
+  "x509ce.dNSName",
+  "x509af.issuer"
+ ],
+ "rows": [
+  ["1", "1700000005.500000", "74", "192.168.56.108", "192.168.56.20", "51000", "8443", "", "", "0", "0x002", "", "", "", "", "", "", ""],
+  ["2", "1700000005.500120", "74", "192.168.56.20", "192.168.56.108", "8443", "51000", "", "", "0", "0x012", "", "", "", "", "", "", ""],
+  ["3", "1700000005.600000", "583", "192.168.56.108", "192.168.56.20", "51000", "8443", "", "", "0", "0x018", "1", "0x0303", "", "c2.lab", "", "", ""],
+  ["4", "1700000006.500000", "66", "192.168.56.108", "192.168.56.20", "51000", "8443", "", "", "0", "0x018", "", "", "", "", "", "", ""]
+ ]
+}

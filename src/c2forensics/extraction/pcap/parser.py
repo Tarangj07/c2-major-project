@@ -126,6 +126,19 @@ def _parse_int(value: str) -> int | None:
         return None
 
 
+def _parse_tcp_flag_bits(flags_hex: str) -> int | None:
+    """Return the numeric TCP flag bits, or ``None`` for an invalid value."""
+    if not flags_hex:
+        return None
+    s = flags_hex.strip().lower()
+    if s.startswith("0x"):
+        s = s[2:]
+    try:
+        return int(s, 16)
+    except ValueError:
+        return None
+
+
 def _parse_tcp_flags(flags_hex: str) -> list[TCPLifecycleFlag]:
     """Translate a tcp.flags hex value into a list of observed flags.
 
@@ -140,14 +153,8 @@ def _parse_tcp_flags(flags_hex: str) -> list[TCPLifecycleFlag]:
     SYN+ACK is reported as both ``SYN`` and ``ACK``; the ``TCPLifecycleEvent``
     list will therefore contain two events for the same frame.
     """
-    if not flags_hex:
-        return []
-    s = flags_hex.strip().lower()
-    if s.startswith("0x"):
-        s = s[2:]
-    try:
-        flags_int = int(s, 16)
-    except ValueError:
+    flags_int = _parse_tcp_flag_bits(flags_hex)
+    if flags_int is None:
         return []
     out: list[TCPLifecycleFlag] = []
     if flags_int & 0x002:
@@ -356,7 +363,7 @@ def parse_rows(
 
     # Initiator tracking uses the same canonical 5-tuple so that the
     # SYN and the SYN-ACK see the same bucket.
-    initiator: dict[tuple[str, int, str, int, str, int | None], tuple[str, int]] = {}
+    initiator_by_flow: dict[tuple[str, int, str, int, str, int | None], tuple[str, int]] = {}
 
     for raw in rows:
         diags.rows_seen += 1
@@ -378,6 +385,7 @@ def parse_rows(
         if flow_key not in flows_data:
             flows_data[flow_key] = {
                 "first_seen": ts,
+                "first_syn_seen": None,
                 "last_seen": ts,
                 "frame_count": 0,
                 "byte_count": 0,
@@ -394,13 +402,18 @@ def parse_rows(
             except ValueError:
                 pass
         if proto == "tcp":
-            # Record initiator on the first SYN we see.
-            if stream is not None and fr.tcp_flags and (int(fr.tcp_flags, 16) & 0x002):
-                if flow_key not in initiator:
-                    initiator[flow_key] = (src_ip, src_port)
+            tcp_flags = _parse_tcp_flag_bits(fr.tcp_flags)
+            # A pure SYN identifies the TCP initiator. SYN-ACK is not an
+            # initiator observation and must not reverse an already-seen flow.
+            if tcp_flags is not None and (tcp_flags & 0x002) and not (tcp_flags & 0x010):
+                if flow_key not in initiator_by_flow:
+                    initiator_by_flow[flow_key] = (src_ip, src_port)
+                first_syn = bucket.get("first_syn_seen")
+                if first_syn is None or ts < first_syn:  # type: ignore[operator]
+                    bucket["first_syn_seen"] = ts
 
             for flag in _parse_tcp_flags(fr.tcp_flags):
-                init = initiator.get(flow_key)
+                init = initiator_by_flow.get(flow_key)
                 direction = "c2s"
                 if init is not None:
                     direction = "c2s" if (src_ip, src_port) == init else "s2c"
@@ -418,7 +431,7 @@ def parse_rows(
                     )
                 )
                 diags.tcp_lifecycle_events += 1
-            if fr.tcp_flags and not _parse_tcp_flags(fr.tcp_flags) and fr.tcp_flags.strip():
+            if fr.tcp_flags and tcp_flags is None:
                 diags.malformed_flags.append(fr.tcp_flags)
 
         # TLS handshake observations.
@@ -448,12 +461,30 @@ def parse_rows(
     # Materialise the flows in deterministic order.
     flow_list: list[FlowObservation] = []
     for key in sorted(flows_data.keys(), key=lambda k: (k[0], k[1], k[2], k[3], k[4], k[5] or -1)):
-        src_ip, src_port, dst_ip, dst_port, proto, stream = key
+        c_src_ip, c_src_port, c_dst_ip, c_dst_port, proto, stream = key
         bucket = flows_data[key]
-        first_seen: datetime = bucket["first_seen"]  # type: ignore[assignment]
+        first_packet_seen: datetime = bucket["first_seen"]  # type: ignore[assignment]
+        first_syn_seen = bucket.get("first_syn_seen")
         last_seen: datetime = bucket["last_seen"]  # type: ignore[assignment]
         frame_count = int(bucket["frame_count"])
         byte_count = int(bucket["byte_count"])
+        initiator_endpoint = initiator_by_flow.get(key)
+        if initiator_endpoint is None:
+            # UDP has no handshake direction. TCP captures that begin after
+            # the SYN also retain the stable canonical endpoint order.
+            src_ip, src_port, dst_ip, dst_port = (
+                c_src_ip,
+                c_src_port,
+                c_dst_ip,
+                c_dst_port,
+            )
+        else:
+            src_ip, src_port = initiator_endpoint
+            if (c_src_ip, c_src_port) == initiator_endpoint:
+                dst_ip, dst_port = c_dst_ip, c_dst_port
+            else:
+                dst_ip, dst_port = c_src_ip, c_src_port
+        first_seen = first_syn_seen if first_syn_seen is not None else first_packet_seen
         # Derived fields are always populated by the parser so that
         # every ``FlowObservation`` leaving Phase 2 carries them.
         duration = max(0.0, (last_seen - first_seen).total_seconds())
@@ -462,8 +493,10 @@ def parse_rows(
         flow_list.append(
             FlowObservation(
                 experiment_id=experiment_id,
+                # Keep the canonical 5-tuple in the identifier so a flow is
+                # stable even when the capture starts after its SYN.
                 flow_id=_derive_flow_id(
-                    (src_ip, src_port, dst_ip, dst_port, proto), stream
+                    (c_src_ip, c_src_port, c_dst_ip, c_dst_port, proto), stream
                 ),
                 src_ip=src_ip,
                 src_port=src_port,
