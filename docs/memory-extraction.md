@@ -241,7 +241,7 @@ surfaces as a `VolatilityError`, not a silent misparse.
 | `vol` not on `PATH` | `MemoryExtractionError` wrapping `VolatilityNotFoundError` | |
 | `vol` exits non-zero | `VolatilityError`; orchestrator marks plugin as `error` and continues | Other plugins still produce results. |
 | `vol` times out | `VolatilityError` | The configured `tools.volatility3.timeout_seconds` is enforced. |
-| Empty image | `MemoryExtractionError` at acquisition time | A non-empty image that contains no recognisable structures produces per-plugin `not_found` statuses. |
+| Empty image | `MemoryExtractionError` at acquisition time | A non-empty file that is not a valid memory image causes Volatility to exit non-zero; the orchestrator records per-plugin `error` statuses (never `not_found`, which is reserved for a successful plugin run that produced zero findings). |
 | Malformed plugin output | The parser never raises on a single malformed row; the row is skipped and counted in `PluginDiagnostics.rows_skipped`. |
 
 The image itself is never modified; the SHA-256 of the input

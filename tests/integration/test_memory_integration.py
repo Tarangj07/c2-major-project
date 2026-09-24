@@ -73,8 +73,13 @@ def test_real_volatility_against_real_image(
 def test_real_volatility_plugin_failure_does_not_crash(
     tmp_path: Path, sample_lab_config_yaml: Path
 ) -> None:
-    # A real empty (or near-empty) image should produce a graceful
-    # "not_found" status for both plugins, not a crash.
+    # A 4 KiB zero-filled file is not a valid memory image. Real
+    # Volatility 3 cannot satisfy the plugin translation-layer
+    # requirements against it and exits non-zero. That is a plugin
+    # *execution failure*, not a successful search that found
+    # nothing, so the framework must record "error" for both
+    # plugins -- never "not_found". ("not_found" is reserved for a
+    # successful plugin run that produced zero findings.)
     paths = init_experiment(repo_root=tmp_path, experiment_id="EXP001")
     src = tmp_path / "tiny.raw"
     src.write_bytes(b"\x00" * 4096)
@@ -88,5 +93,11 @@ def test_real_volatility_plugin_failure_does_not_crash(
         # user sees a typed error, not a stack trace.
         assert "not a valid" in str(exc) or "could not" in str(exc).lower() or "memory image" in str(exc).lower()
         return
-    # If it ran, the status must be "not_found" for at least one plugin.
-    assert any(s == "not_found" for s in bundle.plugin_status.values())
+    # The plugin failure must be recorded gracefully (no crash) as
+    # an execution error for every supported plugin, and must never
+    # be reported as a successful "not_found" observation.
+    statuses = set(bundle.plugin_status.values())
+    assert statuses == {"error"}, bundle.plugin_status
+    assert "not_found" not in statuses
+    assert bundle.processes == []
+    assert bundle.sockets == []
